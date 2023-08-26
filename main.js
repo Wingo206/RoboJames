@@ -1,8 +1,9 @@
 // Require the necessary discord.js classes
 const { REST, Routes, Client, Events, GatewayIntentBits, Collection } = require("discord.js");
-const { clientId, guildIds, token } = require("./keys.json");
+const { clientId, guildIds, token } = require("./config.json");
 const fs = require("node:fs");
 const path = require("node:path");
+const {getEmails} = require("./emails.js");
 
 // Create a new client instance
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
@@ -56,8 +57,24 @@ client.once(Events.ClientReady, c => {
     console.log(`Ready! Logged in as ${c.user.tag}`);
     let interval = setInterval(() => {
         let testChannel = client.channels.cache.get("1037611661802086430");
-        testChannel.send("booga");
-    }, 5000);
+        testChannel.send("Looking for new emails");
+
+        getEmails().then((results) => {
+            console.log("new emails!");
+            for (let i = 0; i < results.length; i++) {
+                let emailInfo = results[i];
+                let msg = "New email from " + emailInfo.from + "\n";
+                msg += "Date: " + emailInfo.date + "\n";
+                msg += "Subject: " + emailInfo.subject + "\n";
+                msg += "Text: " + emailInfo.text + "\n";
+                testChannel.send(msg);
+
+            }
+        }, (err) => {
+            console.log(err);
+        });
+
+    }, 10000);
 });
 
 // Log in to Discord with your client's token
