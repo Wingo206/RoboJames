@@ -1,9 +1,9 @@
 const Imap = require("imap");
 const {simpleParser} = require("mailparser");
-const {emailPassword} = require("./config.json");
+const {email, emailPassword} = require("./config.json");
 
 const imapConfig = {
-    user: "wyngo206@gmail.com",
+    user: email,
     password: emailPassword,
     host: "imap.gmail.com",
     port: 993,
@@ -18,7 +18,7 @@ const getEmails = () => {
             const imap = new Imap(imapConfig);
             imap.once("ready", () => {
                 imap.openBox("INBOX", (err, results) => {
-                    imap.search(["UNSEEN"], (err, results) => {
+                    imap.search(["UNSEEN", ["SINCE", new Date(2023, 7, 01)]], (err, results) => {
                         if (results.length == 0) {
                             console.log("no new emails!");
                             imap.end();
@@ -28,7 +28,7 @@ const getEmails = () => {
                         f.on("message", msg => {
                             msg.on("body", stream => {
                                 simpleParser(stream, async (err, parsed) => {
-                                // console.log(parsed);
+                                    // console.log(parsed);
                                     emailResults.push(
                                         {
                                             "from": parsed.from.text, 
@@ -37,6 +37,7 @@ const getEmails = () => {
                                             "date": parsed.date,
                                         }
                                     );
+                                    // emailResults.push(parsed);
                                 
 
                                 });
