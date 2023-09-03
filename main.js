@@ -4,6 +4,7 @@ const { clientId, guildIds, token, channelId } = require("./config.json");
 const fs = require("node:fs");
 const path = require("node:path");
 const {getEmails} = require("./emails.js");
+const {sendEmailMessage} = require("./createEmbed.js");
 
 // Create a new client instance
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
@@ -62,18 +63,13 @@ client.once(Events.ClientReady, c => {
         getEmails().then((results) => {
             for (let i = 0; i < results.length; i++) {
                 let emailInfo = results[i];
-                let msg = "New email from " + emailInfo.from + "\n";
-                msg += "Date: " + emailInfo.date + "\n";
-                msg += "Subject: " + emailInfo.subject + "\n";
-                msg += "Text: " + emailInfo.text + "\n";
-                testChannel.send(msg);
-
+                sendEmailMessage(testChannel, emailInfo);
             }
         }, (err) => {
             console.log(err);
         });
 
-    }, 10000);
+    }, 3000);
 });
 
 // Log in to Discord with your client's token

@@ -18,31 +18,25 @@ const getEmails = () => {
             const imap = new Imap(imapConfig);
             imap.once("ready", () => {
                 imap.openBox("INBOX", (err, results) => {
-                    imap.search(["UNSEEN", ["SINCE", new Date(2023, 7, 01)]], (err, results) => {
+                    imap.search(["UNSEEN", ["SINCE", new Date(2023, 2, 01)]], (err, results) => {
                         if (results.length == 0) {
                             console.log("no new emails!");
                             imap.end();
                             return;
                         }
                         const f = imap.fetch(results, {bodies: ""});
+                        let index = 0;
                         f.on("message", msg => {
+                            let localIndex = index;
+                            index++;
+                            emailResults[localIndex] = {};
                             msg.on("body", stream => {
                                 simpleParser(stream, async (err, parsed) => {
-                                    // console.log(parsed);
-                                    emailResults.push(
-                                        {
-                                            "from": parsed.from.text, 
-                                            "subject": parsed.subject,
-                                            "text": parsed.text,
-                                            "date": parsed.date,
-                                        }
-                                    );
-                                    // emailResults.push(parsed);
-                                
-
+                                    emailResults[localIndex].email = parsed;
                                 });
                             });
                             msg.once("attributes", attrs => {
+                                emailResults[localIndex].attributes = attrs;
                                 const {uid} = attrs;
                                 imap.addFlags(uid, ["\\Seen"], () => {
                                     console.log("Marked as read!");
@@ -77,10 +71,3 @@ const getEmails = () => {
 module.exports = {
     getEmails
 };
-// getEmails().then((results) => {
-//     console.log("results");
-//     console.log(results[0]);
-// }, (err) => {
-//     console.log(err);
-// });
-
